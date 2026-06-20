@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiUser, FiLock } from 'react-icons/fi'
+import { FiUser, FiLock, FiArrowRight, FiCompass } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -16,8 +16,9 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(form)
-      navigate('/dashboard')
+      const data = await login(form)
+      const first = data?.user?.modules?.[0]?.path || '/dashboard'
+      navigate(first)
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials')
     } finally {
@@ -26,52 +27,53 @@ export default function Login() {
   }
 
   return (
-    <div className="gradient-bg flex min-h-screen items-center justify-center p-4">
+    <div className="app-bg aurora flex min-h-screen items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="glass w-full max-w-md rounded-3xl p-8 shadow-2xl"
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="glass-card w-full max-w-md rounded-3xl p-8"
       >
-        <motion.div
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-center"
-        >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl">
-            🔍
+        <div className="text-center">
+          <div className="accent-grad mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl text-white shadow-xl">
+            <FiCompass size={28} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Lost & Found Portal</h1>
-          <p className="mt-1 text-sm text-white/70">Sign in to your account</p>
-        </motion.div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm muted">Sign in to your Lost &amp; Found account</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
-            <label className="mb-1 block text-sm text-white/80">Username</label>
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              Username
+            </label>
             <div className="relative">
-              <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <FiUser className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 faint" />
               <input
                 type="text"
                 required
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="w-full rounded-xl border border-white/20 bg-white/10 py-3 pl-10 pr-4 text-white placeholder-white/40 outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20"
+                className="input-field pl-10"
                 placeholder="Enter username"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-white/80">Password</label>
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              Password
+            </label>
             <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <FiLock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 faint" />
               <input
                 type="password"
                 required
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full rounded-xl border border-white/20 bg-white/10 py-3 pl-10 pr-4 text-white placeholder-white/40 outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20"
+                className="input-field pl-10"
                 placeholder="Enter password"
               />
             </div>
@@ -81,27 +83,27 @@ export default function Login() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-200"
+              className="rounded-xl bg-red-500/15 px-3 py-2.5 text-sm text-red-400"
             >
               {error}
             </motion.p>
           )}
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-white py-3 font-semibold text-indigo-700 shadow-lg transition hover:bg-white/90 disabled:opacity-60"
+            className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-semibold"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In'}
+            {!loading && <FiArrowRight />}
           </motion.button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/70">
+        <p className="mt-6 text-center text-sm muted">
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-semibold text-white underline">
-            Register
+          <Link to="/register" className="font-semibold accent-text hover:underline">
+            Create one
           </Link>
         </p>
       </motion.div>

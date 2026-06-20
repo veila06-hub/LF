@@ -8,14 +8,26 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { motion } from 'framer-motion'
 import { useTheme } from '../../context/ThemeContext'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default function LostFoundChart({ lost, found, recovered }) {
   const { dark } = useTheme()
-  const textColor = dark ? '#9ca3af' : '#6b7280'
-  const gridColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+
+  // Live accent colours so the chart matches the active theme.
+  const accent =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent')
+      .trim() || '#6366f1'
+  const accent2 =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent-2')
+      .trim() || '#06b6d4'
+
+  const textColor = '#94a3b8'
+  const gridColor = 'rgba(148,163,184,0.15)'
 
   const data = {
     labels: ['Lost Items', 'Found Items', 'Recovered Items'],
@@ -23,7 +35,7 @@ export default function LostFoundChart({ lost, found, recovered }) {
       {
         label: 'Count',
         data: [lost, found, recovered],
-        backgroundColor: ['#6366f1', '#3b82f6', '#22c55e'],
+        backgroundColor: [accent, accent2, '#22c55e'],
         borderRadius: 8,
         borderSkipped: false,
       },
@@ -32,6 +44,7 @@ export default function LostFoundChart({ lost, found, recovered }) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       title: {
@@ -39,6 +52,15 @@ export default function LostFoundChart({ lost, found, recovered }) {
         text: 'Items Overview',
         color: dark ? '#f3f4f6' : '#111827',
         font: { size: 16, weight: '600' },
+      },
+      tooltip: {
+        backgroundColor: dark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.95)',
+        titleColor: dark ? '#f3f4f6' : '#111827',
+        bodyColor: textColor,
+        borderColor: gridColor,
+        borderWidth: 1,
+        cornerRadius: 12,
+        padding: 12,
       },
     },
     scales: {
@@ -55,8 +77,15 @@ export default function LostFoundChart({ lost, found, recovered }) {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <Bar data={data} options={options} />
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="glass-card rounded-2xl p-6"
+    >
+      <div className="h-72">
+        <Bar data={data} options={options} />
+      </div>
+    </motion.div>
   )
 }

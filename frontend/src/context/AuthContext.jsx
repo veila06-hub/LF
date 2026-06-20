@@ -1,26 +1,37 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import api from '../api/axios'
 
 const AuthContext = createContext(null)
 
-function parseJwt(token) {
-  try {
-    const payload = token.split('.')[1]
-    return JSON.parse(atob(payload))
-  } catch {
-    return null
-  }
-}
-
 export function AuthProvider({ children }) {
   const [access, setAccess] = useState(() => localStorage.getItem('access'))
   const [username, setUsername] = useState(() => localStorage.getItem('username'))
+  const [profile, setProfile] = useState(null) // { id, roles, permissions, modules, ... }
+  const [loadingProfile, setLoadingProfile] = useState(Boolean(localStorage.getItem('access')))
 
-  const userId = useMemo(() => {
-    if (!access) return null
-    const payload = parseJwt(access)
-    return payload?.user_id ?? null
-  }, [access])
+  // Fetch the current user's permissions/modules from the backend.
+  const loadProfile = useCallback(async () => {
+    if (!localStorage.getItem('access')) {
+      setProfile(null)
+      setLoadingProfile(false)
+      return null
+    }
+    setLoadingProfile(true)
+    try {
+      const { data } = await api.get('/me/')
+      setProfile(data)
+      return data
+    } catch {
+      setProfile(null)
+      return null
+    } finally {
+      setLoadingProfile(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadProfile()
+  }, [access, loadProfile])
 
   const login = async (credentials) => {
     const { data } = await api.post('/login/', credentials)
@@ -29,6 +40,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('username', credentials.username)
     setAccess(data.access)
     setUsername(credentials.username)
+    if (data.user) setProfile(data.user) // login already returns the payload
     return data
   }
 
@@ -43,17 +55,44 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('username')
     setAccess(null)
     setUsername(null)
+    setProfile(null)
   }
 
-  const isAuthenticated = Boolean(access)
+  // Permission helpers --------------------------------------------------
+  const permissions = profile?.permissions || {}
 
-  return (
-    <AuthContext.Provider
-      value={{ access, username, userId, isAuthenticated, login, register, logout }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const can = useCallback(
+    (module, action) => {
+      if (!profile) return false
+      if (profile.is_superuser) return true
+      return Boolean(permissions[module]?.includes(action))
+    },
+    [profile, permissions]
   )
+
+  const canView = useCallback((module) => can(module, 'view'), [can])
+
+  const value = useMemo(
+    () => ({
+      access,
+      username,
+      profile,
+      roles: profile?.roles || [],
+      modules: profile?.modules || [],
+      isSuperuser: Boolean(profile?.is_superuser),
+      isAuthenticated: Boolean(access),
+      loadingProfile,
+      login,
+      register,
+      logout,
+      reloadProfile: loadProfile,
+      can,
+      canView,
+    }),
+    [access, username, profile, loadingProfile, loadProfile, can, canView]
+  )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

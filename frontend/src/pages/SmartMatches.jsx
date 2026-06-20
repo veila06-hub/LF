@@ -1,35 +1,35 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiMapPin, FiAward, FiArrowRight } from 'react-icons/fi'
+import { FiZap, FiMapPin, FiAward, FiArrowRight, FiCpu, FiTarget, FiTrendingUp } from 'react-icons/fi'
 import api from '../api/axios'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import PageHeader from '../components/ui/PageHeader'
 
 const ConfidenceBar = ({ score }) => {
-  const getColor = (score) => {
-    if (score >= 90) return 'from-green-400 to-green-600'
-    if (score >= 75) return 'from-blue-400 to-blue-600'
-    return 'from-yellow-400 to-yellow-600'
-  }
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-300">Confidence</span>
+        <span className="text-sm font-medium muted">Confidence</span>
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-lg font-bold text-white"
+          className="text-lg font-bold gradient-text"
         >
           {score}%
         </motion.span>
       </div>
-      <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+      <div
+        className="h-2 w-full rounded-full overflow-hidden"
+        style={{ background: 'var(--surface-3)' }}
+      >
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${score}%` }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          className={`h-full bg-gradient-to-r ${getColor(score)} rounded-full`}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full accent-grad rounded-full"
         />
       </div>
     </div>
@@ -40,7 +40,7 @@ export default function SmartMatches() {
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  
+
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -98,183 +98,193 @@ export default function SmartMatches() {
 
   if (loading) return <LoadingSpinner />
 
+  const stats = [
+    { label: 'Total Matches', value: matches.length, icon: FiTarget },
+    {
+      label: 'Avg. Confidence',
+      value: `${Math.round(matches.reduce((a, b) => a + b.score, 0) / matches.length)}%`,
+      icon: FiTrendingUp,
+    },
+    { label: 'Success Rate', value: '88%', icon: FiZap },
+  ]
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       {/* Header Section */}
-      <div className="space-y-3">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          Smart Match Recommendations
-        </h1>
-        <p className="text-gray-400 text-lg">
-          AI-powered intelligent matching between lost and found items
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="AI Recommendations"
+        title="Smart Match Recommendations"
+        subtitle="AI-powered intelligent matching between lost and found items"
+        icon={FiCpu}
+      />
 
       {/* Stats Bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="grid grid-cols-3 gap-4"
       >
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
-          <p className="text-gray-400 text-sm">Total Matches</p>
-          <p className="text-2xl font-bold text-white mt-1">{matches.length}</p>
-        </div>
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
-          <p className="text-gray-400 text-sm">Avg. Confidence</p>
-          <p className="text-2xl font-bold text-green-400 mt-1">
-            {Math.round(matches.reduce((a, b) => a + b.score, 0) / matches.length)}%
-          </p>
-        </div>
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
-          <p className="text-gray-400 text-sm">Success Rate</p>
-          <p className="text-2xl font-bold text-indigo-400 mt-1">88%</p>
-        </div>
+        {stats.map((stat, i) => (
+          <Card key={stat.label} delay={0.05 * i} className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="accent-soft grid h-10 w-10 shrink-0 place-items-center rounded-xl">
+                <stat.icon className="accent-text" size={18} />
+              </div>
+              <div>
+                <p className="text-sm faint">{stat.label}</p>
+                <p className="text-2xl font-bold mt-0.5" style={{ color: 'var(--text)' }}>
+                  {stat.value}
+                </p>
+              </div>
+            </div>
+          </Card>
+        ))}
       </motion.div>
 
       {/* Matches Grid */}
       {matches.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl"
-        >
+        <Card delay={0.1} className="text-center py-20">
           <div className="text-6xl mb-4">🔮</div>
-          <h3 className="text-2xl font-semibold text-white mb-2">No Matches Found</h3>
-          <p className="text-gray-400">More items reported will unlock better matches</p>
-        </motion.div>
+          <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+            No Matches Found
+          </h3>
+          <p className="muted">More items reported will unlock better matches</p>
+        </Card>
       ) : (
         <div className="space-y-6">
           {matches.map((match, index) => (
-            <motion.div
-              key={match.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="group"
-            >
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl transition-all duration-300 hover:border-white/40 hover:shadow-2xl hover:shadow-indigo-500/20">
-                {/* Match Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 pb-6 border-b border-white/10">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {match.matchType}
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">{match.lostItem}</h2>
-                    <p className="text-gray-400 text-sm">{match.lostDescription}</p>
+            <Card key={match.id} hover delay={index * 0.1} className="p-8 group">
+              {/* Match Header */}
+              <div
+                className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8 pb-6 border-b hairline"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold accent-soft accent-text">
+                      {match.matchType}
+                    </span>
                   </div>
+                  <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>
+                    {match.lostItem}
+                  </h2>
+                  <p className="muted text-sm">{match.lostDescription}</p>
+                </div>
 
-                  {/* Score Badge */}
-                  <motion.div
-                    initial={{ scale: 0.5, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 100 }}
-                    className="flex items-center justify-center"
-                  >
-                    <div className="relative w-24 h-24">
-                      <svg className="w-full h-full -rotate-90 transform">
-                        <circle
-                          cx="48"
-                          cy="48"
-                          r="44"
-                          fill="none"
-                          stroke="rgba(255,255,255,0.1)"
-                          strokeWidth="8"
-                        />
-                        <motion.circle
-                          cx="48"
-                          cy="48"
-                          r="44"
-                          fill="none"
-                          stroke="url(#scoreGradient)"
-                          strokeWidth="8"
-                          strokeDasharray={`${2 * Math.PI * 44}`}
-                          initial={{ strokeDashoffset: 2 * Math.PI * 44 }}
-                          animate={{
-                            strokeDashoffset: 2 * Math.PI * 44 * (1 - match.score / 100),
-                          }}
-                          transition={{ duration: 1.5, ease: 'easeOut' }}
-                          strokeLinecap="round"
-                        />
-                        <defs>
-                          <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#4f46e5" />
-                            <stop offset="100%" stopColor="#10b981" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                          <p className="text-3xl font-bold text-white">{match.score}</p>
-                          <p className="text-xs text-gray-400 mt-1">Score</p>
-                        </div>
+                {/* Score Badge */}
+                <motion.div
+                  initial={{ scale: 0.5, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 100 }}
+                  className="flex items-center justify-center"
+                >
+                  <div className="relative w-24 h-24">
+                    <svg className="w-full h-full -rotate-90 transform">
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="44"
+                        fill="none"
+                        stroke="var(--surface-3)"
+                        strokeWidth="8"
+                      />
+                      <motion.circle
+                        cx="48"
+                        cy="48"
+                        r="44"
+                        fill="none"
+                        stroke="url(#scoreGradient)"
+                        strokeWidth="8"
+                        strokeDasharray={`${2 * Math.PI * 44}`}
+                        initial={{ strokeDashoffset: 2 * Math.PI * 44 }}
+                        animate={{
+                          strokeDashoffset: 2 * Math.PI * 44 * (1 - match.score / 100),
+                        }}
+                        transition={{ duration: 1.5, ease: 'easeOut' }}
+                        strokeLinecap="round"
+                      />
+                      <defs>
+                        <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#4f46e5" />
+                          <stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-3xl font-bold" style={{ color: 'var(--text)' }}>
+                          {match.score}
+                        </p>
+                        <p className="text-xs faint mt-1">Score</p>
                       </div>
                     </div>
-                  </motion.div>
-                </div>
-
-                {/* Found Item Info */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
-                  <div className="flex items-start gap-3 mb-3">
-                    <FiAward className="text-green-400 text-lg mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-400 mb-1">Matched with Found Item</p>
-                      <p className="text-lg font-semibold text-white">{match.foundItem}</p>
-                    </div>
                   </div>
-                  <p className="text-gray-400 text-sm ml-7">{match.foundDescription}</p>
-                </div>
+                </motion.div>
+              </div>
 
-                {/* Confidence Bar */}
-                <div className="mb-6">
-                  <ConfidenceBar score={match.score} />
-                </div>
-
-                {/* Location & Tags */}
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FiMapPin className="text-indigo-400 flex-shrink-0" />
-                    <span className="font-medium">{match.location}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {match.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-lg"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+              {/* Found Item Info */}
+              <div
+                className="rounded-2xl p-5 mb-6 border hairline"
+                style={{ background: 'var(--surface-2)' }}
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <FiAward className="text-emerald-400 text-lg mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm faint mb-1">Matched with Found Item</p>
+                    <p className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+                      {match.foundItem}
+                    </p>
                   </div>
                 </div>
+                <p className="muted text-sm ml-7">{match.foundDescription}</p>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate('/verify-claim')}
-                    className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 rounded-xl transition-all duration-200"
-                  >
-                    <FiZap size={18} />
-                    Verify Match
-                  </motion.button>
+              {/* Confidence Bar */}
+              <div className="mb-6">
+                <ConfidenceBar score={match.score} />
+              </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate(`/lost-item/${match.id}`)}
-                    className="flex-1 border border-white/20 hover:border-white/40 text-white font-semibold py-3 rounded-xl transition-all duration-200"
-                  >
-                    <FiArrowRight size={18} className="inline mr-2" />
-                    View Details
-                  </motion.button>
+              {/* Location & Tags */}
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                  <FiMapPin className="accent-text flex-shrink-0" />
+                  <span className="font-medium">{match.location}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {match.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-1 text-xs rounded-lg accent-soft accent-text"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
-            </motion.div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon={FiZap}
+                  onClick={() => navigate('/verify-claim')}
+                  className="flex-1"
+                >
+                  Verify Match
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  icon={FiArrowRight}
+                  onClick={() => navigate(`/lost-item/${match.id}`)}
+                  className="flex-1"
+                >
+                  View Details
+                </Button>
+              </div>
+            </Card>
           ))}
         </div>
       )}

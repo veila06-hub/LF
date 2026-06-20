@@ -9,19 +9,26 @@ export default function Modal({ open, title, onClose, children }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
+            initial={{ scale: 0.94, opacity: 0, y: 16 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.94, opacity: 0, y: 16 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900"
+            className="glass-card max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl p-6"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
-              <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+                {title}
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-ghost grid h-9 w-9 place-items-center rounded-xl"
+              >
                 <FiX className="h-5 w-5" />
               </button>
             </div>

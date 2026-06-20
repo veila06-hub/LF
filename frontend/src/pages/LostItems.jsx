@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { FiPlus, FiTrendingDown, FiCheckCircle, FiPercent } from 'react-icons/fi'
+import { FiPlus, FiTrendingDown, FiCheckCircle, FiPercent, FiSearch } from 'react-icons/fi'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import SearchBar from '../components/ui/SearchBar'
@@ -8,6 +8,9 @@ import StatusFilter from '../components/ui/StatusFilter'
 import ItemCard from '../components/ui/ItemCard'
 import Modal from '../components/ui/Modal'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import PageHeader from '../components/ui/PageHeader'
 
 const emptyForm = {
   title: '',
@@ -17,8 +20,13 @@ const emptyForm = {
   image: null,
 }
 
+const EASE = [0.22, 1, 0.36, 1]
+
 export default function LostItems() {
-  const { isAuthenticated, userId } = useAuth()
+  const { isAuthenticated, userId, can, isSuperuser } = useAuth()
+  const canCreate = can('lost_items', 'create')
+  const canEditModule = can('lost_items', 'edit')
+  const isStaff = isSuperuser || can('users', 'view')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -142,116 +150,79 @@ export default function LostItems() {
 
   if (loading) return <LoadingSpinner />
 
+  const statCards = [
+    { label: 'Total Lost Items', value: stats.total, icon: FiTrendingDown },
+    { label: 'Items Recovered', value: stats.recovered, icon: FiCheckCircle },
+    { label: 'Recovery Rate', value: `${stats.recoveryRate}%`, icon: FiPercent },
+  ]
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Lost Items</h1>
-          <p className="text-gray-500">Browse and report lost belongings</p>
-        </div>
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 transition-all"
-          >
-            <FiPlus /> Report Lost Item
-          </button>
-        )}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+      <PageHeader
+        eyebrow="Lost & Found"
+        title="Lost Items"
+        subtitle="Browse and report lost belongings"
+        icon={FiSearch}
+        actions={
+          isAuthenticated && canCreate ? (
+            <Button variant="primary" icon={FiPlus} onClick={openCreate}>
+              Report Lost Item
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        {statCards.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <Card key={stat.label} delay={0.05 + i * 0.08} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm muted">{stat.label}</p>
+                  <p className="mt-2 text-3xl font-bold gradient-text">{stat.value}</p>
+                </div>
+                <div className="accent-soft grid h-12 w-12 place-items-center rounded-2xl">
+                  <Icon size={22} />
+                </div>
+              </div>
+            </Card>
+          )
+        })}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Lost Items</p>
-              <p className="text-3xl font-bold mt-2">{stats.total}</p>
-            </div>
-            <FiTrendingDown className="text-4xl opacity-20" />
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Items Recovered</p>
-              <p className="text-3xl font-bold mt-2">{stats.recovered}</p>
-            </div>
-            <FiCheckCircle className="text-4xl opacity-20" />
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white shadow-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Recovery Rate</p>
-              <p className="text-3xl font-bold mt-2">{stats.recoveryRate}%</p>
-            </div>
-            <FiPercent className="text-4xl opacity-20" />
-          </div>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-lg flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-      >
+      <Card delay={0.3} className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Search lost items..." />
         </div>
         <StatusFilter value={status} onChange={setStatus} statuses={['All', 'Lost', 'Recovered']} />
-      </motion.div>
+      </Card>
 
       {filtered.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-16 rounded-2xl bg-white dark:bg-slate-900 shadow-lg"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          className="glass-card rounded-2xl py-16 text-center"
         >
-          <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="mb-4 text-6xl">🔍</div>
+          <h3 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
             No Lost Items Found
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Try adjusting your search or create a new report.
-          </p>
+          <p className="mt-2 muted">Try adjusting your search or create a new report.</p>
         </motion.div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((item) => (
-            <motion.div
+            <ItemCard
               key={item.id}
-              whileHover={{
-                scale: 1.03,
-                y: -5
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              <ItemCard
-                item={item}
-                type="lost"
-                canManage={userId === item.user}
-                onEdit={openEdit}
-                onDelete={handleDelete}
-                onRecover={handleRecover}
-              />
-            </motion.div>
+              item={item}
+              type="lost"
+              canManage={canEditModule && (userId === item.user || isStaff)}
+              onEdit={openEdit}
+              onDelete={handleDelete}
+              onRecover={handleRecover}
+            />
           ))}
         </div>
       )}
@@ -264,7 +235,7 @@ export default function LostItems() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {['title', 'description', 'location'].map((field) => (
             <div key={field}>
-              <label className="mb-1 block text-sm font-medium capitalize text-gray-700 dark:text-gray-300">
+              <label className="mb-1.5 block text-sm font-medium capitalize" style={{ color: 'var(--text-muted)' }}>
                 {field}
               </label>
               {field === 'description' ? (
@@ -273,20 +244,20 @@ export default function LostItems() {
                   rows={3}
                   value={form[field]}
                   onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+                  className="input-field"
                 />
               ) : (
                 <input
                   required
                   value={form[field]}
                   onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+                  className="input-field"
                 />
               )}
             </div>
           ))}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
               Date Lost
             </label>
             <input
@@ -294,28 +265,24 @@ export default function LostItems() {
               required
               value={form.date_lost}
               onChange={(e) => setForm({ ...form, date_lost: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
               Image (optional)
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-              className="w-full text-sm"
+              className="w-full text-sm muted"
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-xl bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-          >
+          <Button type="submit" variant="primary" size="lg" disabled={submitting} className="w-full">
             {submitting ? 'Saving...' : editing ? 'Update Item' : 'Submit Report'}
-          </button>
+          </Button>
         </form>
       </Modal>
     </motion.div>

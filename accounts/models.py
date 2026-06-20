@@ -105,7 +105,9 @@ class Notification(models.Model):
 
         
 class Role(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.name
@@ -115,8 +117,12 @@ class Permission(models.Model):
     module = models.CharField(max_length=100)
     action = models.CharField(max_length=100)
 
+    class Meta:
+        unique_together = ("module", "action")
+        ordering = ["module", "action"]
+
     def __str__(self):
-        return f"{self.module} - {self.action}"
+        return f"{self.module}.{self.action}"
 
 
 class RolePermission(models.Model):
@@ -130,6 +136,9 @@ class RolePermission(models.Model):
         on_delete=models.CASCADE
     )
 
+    class Meta:
+        unique_together = ("role", "permission")
+
 
 class UserRole(models.Model):
     user = models.ForeignKey(
@@ -141,3 +150,8 @@ class UserRole(models.Model):
         Role,
         on_delete=models.CASCADE
     )
+
+    class Meta:
+        # One row per (user, role) pair. The app assigns a single role per
+        # user, but the schema tolerates multiple without duplicates.
+        unique_together = ("user", "role")

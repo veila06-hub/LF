@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiUser, FiLock, FiMail } from 'react-icons/fi'
+import { FiUser, FiLock, FiMail, FiArrowRight, FiUserPlus } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
@@ -20,7 +20,7 @@ export default function Register() {
       navigate('/login')
     } catch (err) {
       const errors = err.response?.data
-      if (typeof errors === 'object') {
+      if (typeof errors === 'object' && errors) {
         const msg = Object.entries(errors)
           .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
           .join(' | ')
@@ -33,37 +33,44 @@ export default function Register() {
     }
   }
 
+  const fields = [
+    { key: 'username', label: 'Username', icon: FiUser, type: 'text' },
+    { key: 'email', label: 'Email', icon: FiMail, type: 'email' },
+    { key: 'password', label: 'Password', icon: FiLock, type: 'password' },
+  ]
+
   return (
-    <div className="gradient-bg flex min-h-screen items-center justify-center p-4">
+    <div className="app-bg aurora flex min-h-screen items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass w-full max-w-md rounded-3xl p-8 shadow-2xl"
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="glass-card w-full max-w-md rounded-3xl p-8"
       >
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl">
-            ✨
+          <div className="accent-grad mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl text-white shadow-xl">
+            <FiUserPlus size={26} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="mt-1 text-sm text-white/70">Join the Lost & Found community</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+            Create your account
+          </h1>
+          <p className="mt-1 text-sm muted">Join the Lost &amp; Found community</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          {[
-            { key: 'username', label: 'Username', icon: FiUser, type: 'text' },
-            { key: 'email', label: 'Email', icon: FiMail, type: 'email' },
-            { key: 'password', label: 'Password', icon: FiLock, type: 'password' },
-          ].map(({ key, label, icon: Icon, type }) => (
+          {fields.map(({ key, label, icon: Icon, type }) => (
             <div key={key}>
-              <label className="mb-1 block text-sm text-white/80">{label}</label>
+              <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+                {label}
+              </label>
               <div className="relative">
-                <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+                <Icon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 faint" />
                 <input
                   type={type}
                   required
                   value={form[key]}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="w-full rounded-xl border border-white/20 bg-white/10 py-3 pl-10 pr-4 text-white placeholder-white/40 outline-none focus:border-white/40"
+                  className="input-field pl-10"
                   placeholder={`Enter ${label.toLowerCase()}`}
                 />
               </div>
@@ -71,24 +78,24 @@ export default function Register() {
           ))}
 
           {error && (
-            <p className="rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-200">{error}</p>
+            <p className="rounded-xl bg-red-500/15 px-3 py-2.5 text-sm text-red-400">{error}</p>
           )}
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-white py-3 font-semibold text-indigo-700 shadow-lg disabled:opacity-60"
+            className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-semibold"
           >
-            {loading ? 'Creating account...' : 'Register'}
+            {loading ? 'Creating account…' : 'Create account'}
+            {!loading && <FiArrowRight />}
           </motion.button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/70">
+        <p className="mt-6 text-center text-sm muted">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-white underline">
-            Sign In
+          <Link to="/login" className="font-semibold accent-text hover:underline">
+            Sign in
           </Link>
         </p>
       </motion.div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { FiPlus } from 'react-icons/fi'
+import { FiPlus, FiPackage } from 'react-icons/fi'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import SearchBar from '../components/ui/SearchBar'
@@ -10,6 +10,9 @@ import Modal from '../components/ui/Modal'
 import MatchAlert from '../components/ui/MatchAlert'
 import QRModal from '../components/ui/QRModal'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import PageHeader from '../components/ui/PageHeader'
 
 const emptyForm = {
   title: '',
@@ -19,8 +22,11 @@ const emptyForm = {
   image: null,
 }
 
+const EASE = [0.22, 1, 0.36, 1]
+
 export default function FoundItems() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, can } = useAuth()
+  const canCreate = can('found_items', 'create')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -106,36 +112,49 @@ export default function FoundItems() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Found Items</h1>
-          <p className="text-gray-500">Items reported by finders</p>
-        </div>
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={() => {
-              setForm(emptyForm)
-              setError('')
-              setModalOpen(true)
-            }}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
-          >
-            <FiPlus /> Report Found Item
-          </button>
-        )}
-      </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+      <PageHeader
+        eyebrow="Lost & Found"
+        title="Found Items"
+        subtitle="Items reported by finders"
+        icon={FiPackage}
+        actions={
+          isAuthenticated && canCreate ? (
+            <Button
+              variant="primary"
+              icon={FiPlus}
+              onClick={() => {
+                setForm(emptyForm)
+                setError('')
+                setModalOpen(true)
+              }}
+            >
+              Report Found Item
+            </Button>
+          ) : null
+        }
+      />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card delay={0.05} className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Search found items..." />
         </div>
         <StatusFilter value={status} onChange={setStatus} statuses={['All', 'Found']} />
-      </div>
+      </Card>
 
       {filtered.length === 0 ? (
-        <p className="py-12 text-center text-gray-500">No items found.</p>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          className="glass-card rounded-2xl py-16 text-center"
+        >
+          <div className="mb-4 text-6xl">📦</div>
+          <h3 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
+            No items found.
+          </h3>
+          <p className="mt-2 muted">Try adjusting your search or report a found item.</p>
+        </motion.div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((item) => (
@@ -148,7 +167,7 @@ export default function FoundItems() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {['title', 'description', 'location'].map((field) => (
             <div key={field}>
-              <label className="mb-1 block text-sm font-medium capitalize text-gray-700 dark:text-gray-300">
+              <label className="mb-1.5 block text-sm font-medium capitalize" style={{ color: 'var(--text-muted)' }}>
                 {field}
               </label>
               {field === 'description' ? (
@@ -157,20 +176,20 @@ export default function FoundItems() {
                   rows={3}
                   value={form[field]}
                   onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+                  className="input-field"
                 />
               ) : (
                 <input
                   required
                   value={form[field]}
                   onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+                  className="input-field"
                 />
               )}
             </div>
           ))}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
               Date Found
             </label>
             <input
@@ -178,28 +197,24 @@ export default function FoundItems() {
               required
               value={form.date_found}
               onChange={(e) => setForm({ ...form, date_found: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
               Image (optional)
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-              className="w-full text-sm"
+              className="w-full text-sm muted"
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-xl bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-          >
+          <Button type="submit" variant="primary" size="lg" disabled={submitting} className="w-full">
             {submitting ? 'Submitting...' : 'Submit Report'}
-          </button>
+          </Button>
         </form>
       </Modal>
 

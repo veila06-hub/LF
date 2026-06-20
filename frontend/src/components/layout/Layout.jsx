@@ -1,19 +1,35 @@
-import { Outlet } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
 import MobileNav from './MobileNav'
+import PageTransition from '../PageTransition'
+import ThemeCustomizer from '../ui/ThemeCustomizer'
 
 export default function Layout() {
+  const location = useLocation()
+  const [customizerOpen, setCustomizerOpen] = useState(false)
+
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-950">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
-          <Outlet />
+    <div className="app-bg aurora flex min-h-screen">
+      <Sidebar />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Navbar onOpenCustomizer={() => setCustomizerOpen(true)} />
+        <main className="flex-1 overflow-x-hidden px-4 pb-24 pt-6 md:px-8 md:pb-8">
+          <div className="mx-auto w-full max-w-7xl">
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <Outlet />
+              </PageTransition>
+            </AnimatePresence>
+          </div>
         </main>
       </div>
-      <MobileNav />
+
+      <MobileNav onOpenCustomizer={() => setCustomizerOpen(true)} />
+      <ThemeCustomizer open={customizerOpen} onClose={() => setCustomizerOpen(false)} />
     </div>
   )
 }
