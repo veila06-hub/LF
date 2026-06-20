@@ -1,0 +1,31 @@
+from django.urls import path
+from .views import test_api, register, login , create_lost_item , get_lost_items , create_found_item ,get_found_items , my_lost_items , lost_item_detail , delete_lost_item , update_lost_item , dashboard_stats , mark_as_recovered , claim_history , admin_stats, verify_claim, confirm_claim , notifications , smart_matches , get_users , get_roles , assign_role , role_permissions , assign_permission_to_role , get_permissions , remove_permission_from_role
+
+urlpatterns = [
+    path('test/', test_api),
+    path('register/', register),
+    path('login/', login),
+    path('lost-items/', create_lost_item),
+    path('view-lost-items/', get_lost_items),
+    path('found-items/', create_found_item),
+    path('view-found-items/', get_found_items),
+    path('my-lost-items/', my_lost_items),
+    path('lost-item/<int:pk>/', lost_item_detail),
+    path('delete-lost-item/<int:pk>/', delete_lost_item),
+    path('update-lost-item/<int:pk>/', update_lost_item),
+    path('dashboard/',dashboard_stats),
+    path('lost-items/<int:pk>/recover/', mark_as_recovered),
+    path('claim-history/',claim_history),
+    path('admin-stats/',admin_stats),
+    path('verify-claim/<str:claim_id>/', verify_claim),
+    path('confirm-claim/<str:claim_id>/', confirm_claim),
+    path('notifications/', notifications),
+    path('smart-matches/', smart_matches),
+    path("users/", get_users),
+    path("roles/", get_roles),
+    path("assign-role/", assign_role),
+    path("role-permissions/", role_permissions),
+    path("assign-permission/",assign_permission_to_role),
+    path("permissions/", get_permissions),
+    path( "remove-permission/",remove_permission_from_role),
+]
