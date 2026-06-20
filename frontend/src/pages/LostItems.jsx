@@ -17,6 +17,7 @@ const emptyForm = {
   image: null,
 }
 
+import { useNavigate } from 'react-router-dom'
 export default function LostItems() {
   const { isAuthenticated, userId } = useAuth()
   const [items, setItems] = useState([])

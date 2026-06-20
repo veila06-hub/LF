@@ -324,6 +324,16 @@ def admin_stats(request):
         "total_recovered_items": total_recovered
     })
 
+@api_view(['GET'])
+def dashboard_stats(request):
+    return Response({
+        "stats": [
+            {"title": "Lost Items", "value": LostItem.objects.count()},
+            {"title": "Found Items", "value": FoundItem.objects.count()},
+            {"title": "Recovered", "value": LostItem.objects.filter(is_recovered=True).count()},
+            {"title": "Notifications", "value": 12},
+        ]
+
 @api_view(["GET"])
 def dashboard_stats(request):
     return Response({
