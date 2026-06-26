@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUserPlus, FiTrash2, FiUsers } from "react-icons/fi";
+import { toast } from "react-toastify";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Card from "../components/ui/Card";
@@ -47,20 +48,21 @@ export default function UserManagement() {
       await api.post("/assign-role/", { user_id: userId, role_id: roleId });
       await loadData();
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to assign role");
+      toast.error(err.response?.data?.error || "Failed to assign role");
     }
   };
 
   const createUser = async () => {
     if (!newUser.username.trim() || !newUser.password) {
-      return alert("Username and password are required");
+      toast.error("Username and password are required");
+      return;
     }
     try {
       await api.post("/users/", newUser);
       setNewUser({ username: "", email: "", password: "", role_id: "" });
       await loadData();
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to create user");
+      toast.error(err.response?.data?.error || "Failed to create user");
     }
   };
 
@@ -70,7 +72,7 @@ export default function UserManagement() {
       await api.delete(`/users/${user.id}/`);
       await loadData();
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to delete user");
+      toast.error(err.response?.data?.error || "Failed to delete user");
     }
   };
 

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiMapPin, FiCalendar, FiTag, FiCheckCircle, FiFileText } from "react-icons/fi";
 import api from "../api/axios";
+import { toast } from "react-toastify";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
@@ -37,10 +38,10 @@ export default function LostItemDetail() {
         is_recovered: true,
       });
 
-      alert("Item marked as recovered");
+      toast.success("Item marked as recovered");
     } catch (err) {
       console.log(err);
-      alert("Failed to update item");
+      toast.error("Failed to update item");
     }
   };
 

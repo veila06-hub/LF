@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -55,6 +57,15 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar
+            newestOnTop
+            closeOnClick
+            pauseOnHover
+            theme="colored"
+          />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiTrash2, FiSave, FiShield, FiUsers, FiKey } from "react-icons/fi";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import PageHeader from "../components/ui/PageHeader";
@@ -92,23 +93,27 @@ export default function PermissionMatrix() {
       });
       await loadRoles();
       await reloadProfile(); // my own sidebar may change
-      alert("Permissions saved");
+      toast.success("Permissions saved");
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to save permissions");
+      toast.error(err.response?.data?.error || "Failed to save permissions");
     } finally {
       setSaving(false);
     }
   };
 
   const createRole = async () => {
-    if (!newRole.name.trim()) return alert("Role name is required");
+    if (!newRole.name.trim()) {
+      toast.error("Role name is required");
+      return;
+    }
     try {
       const { data } = await api.post("/roles/", newRole);
       setNewRole({ name: "", description: "" });
       await loadRoles();
       selectRole({ id: data.id, name: data.name, description: data.description });
+      toast.success("Role created");
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to create role");
+      toast.error(err.response?.data?.error || "Failed to create role");
     }
   };
 
@@ -122,7 +127,7 @@ export default function PermissionMatrix() {
       }
       await loadRoles();
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to delete role");
+      toast.error(err.response?.data?.error || "Failed to delete role");
     }
   };
 

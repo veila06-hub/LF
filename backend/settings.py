@@ -57,6 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # RBAC middleware
+    'accounts.middleware.RBACEnrichmentMiddleware',
+    'accounts.middleware.RBACAuditLoggingMiddleware',
+    # 'accounts.middleware.RBACPermissionCheckMiddleware',  # Uncomment to enforce at middleware level
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -129,3 +133,47 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+# ---- Logging Configuration for RBAC Audit Trail ----
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'rbac_audit.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'accounts.rbac': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+
+# ---- Optional: Protected Routes (middleware-level enforcement) ----
+# Uncomment to enforce permissions at middleware level.
+# Useful for APIs that should never be accessible regardless of decorator.
+RBAC_PROTECTED_ROUTES = {
+    # r'^/api/admin-stats/$': ('dashboard', 'view'),
+    # r'^/api/users/$': ('users', 'view'),
+}
